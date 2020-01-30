@@ -312,15 +312,24 @@ def dump_info(fp):
 			file_size, size))
 
 if __name__ == '__main__':
-	import sys
+	import argparse
 
-	if len(sys.argv) > 1:
-		archive = sys.argv[1]
+	parser = argparse.ArgumentParser()
 
-		if archive == '--wine':
-			archive = find_archive_wine()
+	parser.add_argument('archives', nargs='*')
+	parser.add_argument('--wine', action='store_true')
+
+	args = parser.parse_args()
+
+	if args.archives:
+		archives = args.archives
+	elif args.wine:
+		archives = [find_archive_wine()]
 	else:
-		archive = find_archive()
+		archives = [find_archive()]
 
-	with open(archive,"rb") as fp:
-		dump_info(fp)
+	for archive in archives:
+		print('archive:', archive)
+		with open(archive,"rb") as fp:
+			dump_info(fp)
+		print()
