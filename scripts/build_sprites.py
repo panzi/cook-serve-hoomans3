@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from game_maker import *
 
 MAX_FILLER_COUNT = 4
-HOOMAN_SPRITES = {'CUST_SPR_POOR', 'CUST_SPR_COMMON', 'CUST_SPR_RICH'}
+HOOMAN_SPRITES = {'CUST_SPR_AllNewFTC_A', 'CUST_SPR_AllNewFTC_B'}
 HOOMAN_NAMES = {}
 
 @contextmanager

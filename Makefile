@@ -27,7 +27,6 @@ ARCH_FLAGS=
 WINDRES=windres
 INKSCAPE=inkscape
 CONVERT=convert
-ARCHIVE=$(shell ./scripts/find_archive.py)
 
 CSH3_OBJ=$(BUILDDIR_BIN)/cook_serve_hoomans3.o \
          $(BUILDDIR_BIN)/csd3_find_archive.o \
@@ -86,13 +85,11 @@ ifeq ($(TARGET),linux32)
 	BINEXT=-linux-i686
 	ARCH_FLAGS=-m32
 	BUILD_FLAGS+=--wine
-	ARCHIVE=$(shell ./scripts/find_archive.py --wine)
 else
 ifeq ($(TARGET),linux64)
 	CFLAGS=$(POSIX_CFLAGS)
 	ARCH_FLAGS=-m64
 	BUILD_FLAGS+=--wine
-	ARCHIVE=$(shell ./scripts/find_archive.py --wine)
 else
 ifeq ($(TARGET),darwin32)
 	CC=clang
@@ -134,9 +131,6 @@ setup:
 
 patch: "$(BUILDDIR_BIN)/$(BINNAME)$(BINEXT)"
 	$<
-
-unpatch: $(ARCHIVE).backup
-	cp "$<" "$(ARCHIVE)"
 
 build_sprites:
 	scripts/build_sprites.py $(BUILD_FLAGS) sprites $(BUILDDIR_SRC)
