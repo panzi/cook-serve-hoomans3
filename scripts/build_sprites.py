@@ -235,7 +235,7 @@ def build_sprites(fp, spritedir, builddir, autofix, debug):
 
 							text_x = 0
 							if text_y is None:
-								text_y = int(height * 0.5)
+								text_y = int(height * 0.42)
 
 							draw_lines(draw, lines, font, '#000000', text_x, text_y, width, height, 0)
 							tmp_img = tmp_img.filter(blur)
