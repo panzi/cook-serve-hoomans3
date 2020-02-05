@@ -565,12 +565,16 @@ if __name__ == '__main__':
 	parser.add_argument('-w', '--wine',    action='store_true')
 	parser.add_argument('-a', '--autofix', action='store_true')
 	parser.add_argument('-d', '--debug',   action='store_true')
+	parser.add_argument('-t', '--target', default=None)
 
 	args = parser.parse_args()
 
 	if args.archive:
 		archive = args.archive
 	elif args.wine:
+		archive = find_archive_wine()
+	elif args.target and args.target.lower() in ('win32', 'win64') and \
+	     platform.system() != 'Windows' and not platform.system().startswith('CYGWIN'):
 		archive = find_archive_wine()
 	else:
 		archive = find_archive()

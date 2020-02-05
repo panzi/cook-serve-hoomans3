@@ -133,7 +133,7 @@ patch: "$(BUILDDIR_BIN)/$(BINNAME)$(BINEXT)"
 	$<
 
 build_sprites:
-	scripts/build_sprites.py $(BUILD_FLAGS) sprites $(BUILDDIR_SRC)
+	scripts/build_sprites.py $(BUILD_FLAGS) --target=$(TARGET) sprites $(BUILDDIR_SRC)
 
 pkg: VERSION=$(shell git describe --tags)
 pkg: $(BUILDDIR_BIN)/utils-for-advanced-users-$(VERSION)-$(TARGET).zip $(EXT_DEP) cook_serve_hoomans3
