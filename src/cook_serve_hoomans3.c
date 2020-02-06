@@ -32,12 +32,12 @@ static int copyfile(const char *src, const char *dst) {
 		goto error;
 	}
 
-	outfd = open(dst, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-	if (outfd < 0) {
+	if (fstat(infd, &info) < 0) {
 		goto error;
 	}
 
-	if (fstat(infd, &info) < 0) {
+	outfd = open(dst, O_CREAT | O_WRONLY, info.st_mode);
+	if (outfd < 0) {
 		goto error;
 	}
 
@@ -63,7 +63,28 @@ end:
 
 	return status;
 }
+
+#elif defined(GM_WINDOWS)
+
+#include <windows.h>
+#include <errno.h>
+
+static int copyfile(const char *src, const char *dst) {
+	if (CopyFile(src, dst, FALSE)) {
+		return 0;
+	}
+
+	switch (GetLastError()) {
+		case ERROR_FILE_NOT_FOUND: errno = ENOENT; break;
+		case ERROR_ACCESS_DENIED:  errno = EACCES; break;
+		default:                   errno = EINVAL; break;
+	}
+
+	return -1;
+}
+
 #else
+
 static int copyfile(const char *src, const char *dst) {
 	char buf[BUFSIZ];
 	FILE *fsrc = NULL;

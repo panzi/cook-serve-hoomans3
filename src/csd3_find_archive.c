@@ -241,9 +241,13 @@ char *csd3_find_archive() {
 	// Therefore I can't assume a certain case and because I don't want to write
 	// a parser for registry.vdf I scan the filesystem for certain names in a case
 	// insensitive manner.
-	static const char* const path1[] = {".local", "share", "Steam", "SteamApps", "common", "CookServeDelicious3" ,"assets", "game.unx", NULL};
-	static const char* const path2[] = {".steam", "Steam", "SteamApps", "common", "CookServeDelicious3", "assets", "game.unx", NULL};
-	static const char* const* paths[] = {path1, path2, NULL};
+	const char* const* paths[] = {
+		(const char * const[]){".local", "share", "Steam", "SteamApps", "common", "CookServeDelicious3" ,"assets", "game.unx", NULL},
+		(const char * const[]){".steam", "Steam", "SteamApps", "common", "CookServeDelicious3", "assets", "game.unx", NULL},
+		(const char * const[]){".wine", "drive_c", "Program Files (x86)", "Steam", "steamapps", "common", "CookServeDelicious3", "data.win", NULL},
+		(const char * const[]){".wine", "drive_c", "Program Files", "Steam", "steamapps", "common", "CookServeDelicious3", "data.win", NULL},
+		NULL
+	};
 
 	const char *home = getenv("HOME");
 
