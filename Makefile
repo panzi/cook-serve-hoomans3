@@ -176,7 +176,7 @@ $(BUILDDIR_BIN)/utils-for-advanced-users-$(VERSION)-$(TARGET).zip: gmdump gminfo
 	rm -r $(BUILDDIR_BIN)/utils-for-advanced-users-$(VERSION)-$(TARGET)
 
 $(BUILDDIR_SRC)/csh3_patch_def.h: $(wildcard sprites/*/*.png) scripts/build_sprites.py hoomans.csv
-	scripts/build_sprites.py $(BUILD_FLAGS) sprites $(BUILDDIR_SRC)
+	scripts/build_sprites.py $(BUILD_FLAGS) --target=$(TARGET) sprites $(BUILDDIR_SRC)
 
 $(BUILDDIR_SRC)/csh3_patch_def.c: $(BUILDDIR_SRC)/csh3_patch_def.h
 
