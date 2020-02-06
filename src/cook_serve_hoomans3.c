@@ -1,3 +1,6 @@
+// get basename(const char*)
+#define _GNU_SOURCE
+
 #include "csd3_find_archive.h"
 #include "game_maker.h"
 #include "csh3_patch_def.h"
@@ -83,6 +86,25 @@ static int copyfile(const char *src, const char *dst) {
 	return -1;
 }
 
+const char *basename(const char *name) {
+	if (name == NULL) {
+		return NULL;
+	}
+
+	const size_t len = strlen(name);
+	if (len == 0) {
+		return name;
+	}
+
+	for (const char *ptr = name + len - 1; ptr > name; -- ptr) {
+		if (*ptr == '\\' || *ptr == '/') {
+			return ptr + 1;
+		}
+	}
+
+	return name;
+}
+
 #else
 
 static int copyfile(const char *src, const char *dst) {
@@ -143,6 +165,7 @@ int main(int argc, char *argv[]) {
 	char *backup_name = NULL;
 	int status = EXIT_SUCCESS;
 	const char *game_name = NULL;
+	const char *game_leaf = NULL;
 	struct stat st;
 
 	if (argc > 2) {
@@ -160,6 +183,7 @@ int main(int argc, char *argv[]) {
 		}
 		game_name = game_name_buf;
 	}
+	game_leaf = basename(game_name);
 
 	printf("Found game archive: %s\n", game_name);
 
@@ -190,7 +214,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	printf("If you want to remove the mod again delete %s and rename %s.backup to %s (both files are in the same folder).\n",
-		CSH3_GAME_ARCHIVE, CSH3_GAME_ARCHIVE, CSH3_GAME_ARCHIVE);
+		game_leaf, game_leaf, game_leaf);
 
 	printf("Patching the game...\n");
 

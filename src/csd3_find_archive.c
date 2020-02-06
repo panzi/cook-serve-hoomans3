@@ -242,8 +242,15 @@ char *csd3_find_archive() {
 	// a parser for registry.vdf I scan the filesystem for certain names in a case
 	// insensitive manner.
 	const char* const* paths[] = {
+		// Native Linux version
 		(const char * const[]){".local", "share", "Steam", "SteamApps", "common", "CookServeDelicious3" ,"assets", "game.unx", NULL},
 		(const char * const[]){".steam", "Steam", "SteamApps", "common", "CookServeDelicious3", "assets", "game.unx", NULL},
+
+		// Steam Play
+		(const char * const[]){".local", "share", "Steam", "SteamApps", "common", "CookServeDelicious3" ,"data.win", NULL},
+		(const char * const[]){".steam", "Steam", "SteamApps", "common", "CookServeDelicious3", "data.win", NULL},
+
+		// Wine Steam installation
 		(const char * const[]){".wine", "drive_c", "Program Files (x86)", "Steam", "steamapps", "common", "CookServeDelicious3", "data.win", NULL},
 		(const char * const[]){".wine", "drive_c", "Program Files", "Steam", "steamapps", "common", "CookServeDelicious3", "data.win", NULL},
 		NULL
