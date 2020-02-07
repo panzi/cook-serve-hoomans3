@@ -3,10 +3,10 @@
 import os
 from os.path import join as pjoin, abspath, dirname
 
-FOLDERS = ('CUST_SPR_POOR', 'CUST_SPR_COMMON', 'CUST_SPR_RICH')
+FOLDERS = ('CUST_SPR_AllNewFTC_A', 'CUST_SPR_AllNewFTC_B')
 
 def free():
-	free_map = {folder: set(range(73)) for folder in FOLDERS}
+	free_map = {folder: set(range(50)) for folder in FOLDERS}
 	prjdir = pjoin(dirname(abspath(__file__)), '..')
 
 	for folder in FOLDERS:

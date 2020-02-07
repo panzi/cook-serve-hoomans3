@@ -190,7 +190,9 @@ if platform.system() == 'Linux':
 	def find_archive():
 		linux_paths = [
 			[".local", "share", "Steam", "SteamApps", "common", "CookServeDelicious3" ,"assets", "game.unx"],
-			[".steam", "Steam", "SteamApps", "common", "CookServeDelicious3", "assets", "game.unx"]
+			[".steam", "Steam", "SteamApps", "common", "CookServeDelicious3", "assets", "game.unx"],
+			[".local", "share", "Steam", "SteamApps", "common", "CookServeDelicious3" ,"data.win"],
+			[".steam", "Steam", "SteamApps", "common", "CookServeDelicious3", "data.win"],
 		]
 
 		home = os.getenv('HOME')

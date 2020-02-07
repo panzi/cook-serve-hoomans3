@@ -84,12 +84,10 @@ ifeq ($(TARGET),linux32)
 	CFLAGS=$(POSIX_CFLAGS)
 	BINEXT=-linux-i686
 	ARCH_FLAGS=-m32
-	BUILD_FLAGS+=--wine
 else
 ifeq ($(TARGET),linux64)
 	CFLAGS=$(POSIX_CFLAGS)
 	ARCH_FLAGS=-m64
-	BUILD_FLAGS+=--wine
 else
 ifeq ($(TARGET),darwin32)
 	CC=clang
@@ -131,6 +129,9 @@ setup:
 
 patch: "$(BUILDDIR_BIN)/$(BINNAME)$(BINEXT)"
 	$<
+
+unpatch:
+	./scripts/unpatch.py --target=$(TARGET)
 
 build_sprites:
 	scripts/build_sprites.py $(BUILD_FLAGS) --target=$(TARGET) sprites $(BUILDDIR_SRC)
