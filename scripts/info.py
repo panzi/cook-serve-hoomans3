@@ -110,7 +110,7 @@ def _dump_SPRT(fp,area_size,nesting):
 
 		data = fp.read(tpag_count * 4)
 		tpag_offsets = struct.unpack('<%dI' % tpag_count, data)
-		all_tpag_offsets.update(tpag_offsets)
+		all_tpag_offsets.update(tpag_offset for tpag_offset in tpag_offsets if tpag_offset != 0)
 
 		strptr = vals[0]
 		fp.seek(strptr - 4, 0)
