@@ -29,9 +29,13 @@ if __name__ == '__main__':
 	for archive in archives:
 		backup = archive + '.backup'
 		if isfile(backup):
-			print('Reverting patch %s -> %s' % (archive, backup))
+			print('Reverting patch...')
+			print('Source:     ', backup)
+			print('Destination:', archive)
 			rename(backup, archive)
 		elif exists(backup):
 			sys.stderr.write('*** Error: Backup exists but is not a file: %s\n' % backup)
+			sys.exit(1)
 		else:
 			sys.stderr.write('*** Error: Backup does not exist: %s\n' % backup)
+			sys.exit(1)
