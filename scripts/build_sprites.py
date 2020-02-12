@@ -184,7 +184,15 @@ def escape_c_string(s):
 
 def build_sprites(fp, spritedir, builddir, autofix, debug):
 	font = ImageFont.truetype(find_font('OpenSans_Bold.ttf', 'OpenSans_Regular.ttf', 'Arial.ttf'), 22)
-	blur = ImageFilter.GaussianBlur(2)
+	kernel = [
+		0, 1, 2, 1, 0,
+		1, 2, 4, 2, 1,
+		2, 4, 8, 4, 1,
+		1, 2, 4, 2, 1,
+		0, 1, 2, 1, 0,
+	]
+	outline_filter = ImageFilter.Kernel((5, 5), kernel, scale = 0.05 * sum(kernel))
+
 	patch_def = []
 	patch_data_externs = []
 
@@ -238,7 +246,8 @@ def build_sprites(fp, spritedir, builddir, autofix, debug):
 								text_y = int(height * 0.42)
 
 							draw_lines(draw, lines, font, '#000000', text_x, text_y, width, height, 0)
-							tmp_img = tmp_img.filter(blur)
+							tmp_img = tmp_img.filter(outline_filter)
+
 							draw = ImageDraw.Draw(tmp_img)
 							draw_lines(draw, lines, font, '#ffffff', text_x, text_y, width, height, 0)
 
