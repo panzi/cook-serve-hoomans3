@@ -10,7 +10,7 @@ BEGIN
       VALUE "CompanyName", "@bloodyalbatross"
       VALUE "FileDescription", "A mod for Cook, Serve, Delicious! 3?! that changes certain sprites."
       VALUE "FileVersion", "1.0"
-      VALUE "OriginalFilename", "Cook, Serve, Hoomans! 3?!.exe"
+      VALUE "OriginalFilename", "Cook-Serve-Hoomans-3.exe"
       VALUE "InternalName", "Cook, Serve, Hoomans! 3?!"
       VALUE "ProductName", "Cook, Serve, Hoomans! 3?!"
       VALUE "ProductVersion", "1.0"
