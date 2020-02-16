@@ -59,7 +59,7 @@ def find_font(*fontfiles):
 						return pjoin(dirpath, filename)
 	raise KeyError('font not found: ' + ', '.join(fontfiles))
 
-SPLIT = re.compile(r'[-_ \r\t\v]+|\n')
+SPLIT = re.compile(r'[ \r\t\v]+|\n')
 BORDER = re.compile(r'([a-zäöüß])([A-Z0-9ÄÖÜ])')
 
 def split_text(text):
@@ -125,7 +125,7 @@ def _wrap_text_reformat(text, width, font):
 	return lines
 
 def wrap_text(text, width, font):
-	text = text.strip("-_\n\r\t ")
+	text = text.strip("\n\r\t ")
 	words = split_text(text)
 	lines = []
 	line = []
