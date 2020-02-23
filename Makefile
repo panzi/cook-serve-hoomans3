@@ -14,7 +14,7 @@ ifeq ($(DEBUG),ON)
 	COMMON_CFLAGS+=-g -DDEBUG
 	BUILD_FLAGS+=--debug
 else
-	COMMON_CFLAGS+=-O2
+	COMMON_CFLAGS+=-O2 -DNDEBUG
 endif
 ifeq ($(AUTOFIX),OFF)
 	# pass
