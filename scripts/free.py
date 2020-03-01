@@ -2,6 +2,7 @@
 
 import os
 from os.path import join as pjoin, abspath, dirname
+from PIL import Image
 
 FOLDERS = ('CUST_SPR_AllNewFTC_A', 'CUST_SPR_AllNewFTC_B')
 
@@ -27,7 +28,10 @@ def free():
 		if free_slots:
 			print(folder + ':')
 			for number in sorted(free_slots):
-				print('\t%s/%d.png' % (folder, number))
+				filename = '%s/%d.png' % (folder, number)
+				filepath = pjoin(prjdir, 'dump', folder, '%d.png' % number)
+				width, height = Image.open(filepath).size
+				print('\t%-30s %d x %d' % (filename, width, height))
 		print()
 
 if __name__ == '__main__':
