@@ -20,7 +20,8 @@ enum gm_filetype {
 	GM_UNKNOWN = 0,
 	GM_PNG,
 	GM_WAVE,
-	GM_OGG
+	GM_OGG,
+	GM_TXT,
 };
 
 enum gm_section {
@@ -56,7 +57,7 @@ enum gm_section {
 
 enum gm_patch_src {
 	GM_SRC_MEM,
-	GM_SRC_FILE
+	GM_SRC_FILE,
 };
 
 struct gm_patch_sprt_entry {
@@ -70,7 +71,7 @@ struct gm_patch_sprt_entry {
 
 struct gm_patch {
 	enum gm_section   section;
-	size_t            index;
+	size_t            index; // entry index
 	enum gm_filetype  type;
 	enum gm_patch_src patch_src;
 	size_t            size;
@@ -91,8 +92,16 @@ struct gm_patch {
 			size_t entry_count;
 			const struct gm_patch_sprt_entry *entries;
 		} sprt;
+
+		struct {
+			const char *old;
+			const char *new;
+		} strg;
 	} meta;
 };
+
+#define GM_PATCH_STRG(OLD, NEW) \
+	{ GM_STRG, 0, GM_TXT, GM_SRC_MEM, 0, { .data = NULL }, { .strg = { (OLD), (NEW) } } }
 
 #define GM_PATCH_SPRT(NAME, ENTRIES, ENTRY_COUNT) \
 	{ GM_SPRT, 0, GM_PNG, GM_SRC_MEM, 0, { .data = NULL }, { .sprt = { (NAME), (ENTRY_COUNT), (ENTRIES) } } }
@@ -132,6 +141,8 @@ struct gm_entry {
 			size_t tpag_count;
 			struct gm_tpag *tpag;
 		} sprt;
+
+		char *strg;
 	} meta;
 };
 

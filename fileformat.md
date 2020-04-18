@@ -163,7 +163,8 @@ of the values are obviously absolute offsets pointing into the string table
 
 String table. Other chunks point right into this one whenever they refer to a
 simple string (so whole scripts aren't stored in this, only identifier names and
-such).
+such). But sometimes other chunks also refer to strings in some other way, since
+I didn't find absolute references to all strings.
 
      Offset  Size  Type         Description
           0     4  char[4]      chunk magic: 'STRG'
@@ -173,7 +174,7 @@ such).
      12+4*N     ?  String[N]    strings
 
 Because of the absolute offsets I wouldn't expect the strings to actually start
-right after the offset table.
+right after the offset table in any case.
 
 #### String
 

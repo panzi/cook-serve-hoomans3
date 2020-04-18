@@ -271,6 +271,13 @@ void gm_free_index(struct gm_index *index) {
 		for (struct gm_index *ptr = index; ptr->section != GM_END; ++ ptr) {
 			if (ptr->entries) {
 				switch (ptr->section) {
+				case GM_STRG:
+					for (size_t index = 0; index < ptr->entry_count; ++ index) {
+						free(ptr->entries[index].meta.strg);
+						ptr->entries[index].meta.strg = NULL;
+					}
+					break;
+
 				case GM_SPRT:
 					for (size_t index = 0; index < ptr->entry_count; ++ index) {
 						free(ptr->entries[index].meta.sprt.name);
@@ -332,6 +339,57 @@ int gm_patch_entry(struct gm_patched_index *index, const struct gm_patch *patch)
 	case GM_TXTR:
 	case GM_AUDO:
 		break;
+
+	case GM_STRG:
+	{
+		const size_t old_len = strlen(patch->meta.strg.old);
+		const size_t new_len = strlen(patch->meta.strg.new);
+
+		if (new_len > old_len) {
+			LOG_ERR("cannot increase string length: \"%s\" (%" PRIuPTR ") -> \"%s\" (%" PRIuPTR ")",
+			        patch->meta.strg.old, old_len, patch->meta.strg.new, new_len);
+
+			errno = EINVAL;
+			return -1;
+		}
+
+		bool found = false;
+		for (size_t i = 0; i < index->entry_count; ++ i) {
+			struct gm_patched_entry *entry = &index->entries[i];
+
+			if (strcmp(entry->entry->meta.strg, patch->meta.strg.old) == 0) {
+				if (entry->patch) {
+					LOG_ERR("section %s, entry %" PRIuPTR " is already patched", gm_section_name(index->section), i);
+
+					errno = EINVAL;
+					return -1;
+				}
+				entry->patch = patch;
+				found = true;
+				break;
+			}
+		}
+
+		if (!found) {
+			// So double-patching works:
+			for (size_t i = 0; i < index->entry_count; ++ i) {
+				struct gm_patched_entry *entry = &index->entries[i];
+
+				if (strcmp(entry->entry->meta.strg, patch->meta.strg.new) == 0 && !entry->patch) {
+					found = true;
+					break;
+				}
+			}
+
+			if (!found) {
+				LOG_ERR("can't find string \"%s\" in game archive", patch->meta.strg.old);
+
+				errno = EINVAL;
+				return -1;
+			}
+		}
+		return 0;
+	}
 
 	case GM_SPRT:
 	{
@@ -531,6 +589,115 @@ enum gm_section gm_parse_section(const uint8_t *name) {
 	else if (memcmp("EMBI", name, 4) == 0) { return GM_EMBI; }
 	else if (memcmp("TGIN", name, 4) == 0) { return GM_TGIN; }
 	else return GM_END;
+}
+
+int gm_read_index_strg(FILE *game, struct gm_index *section) {
+	uint8_t buffer[4];
+	size_t count = 0;
+	off_t *offsets = NULL;
+	struct gm_entry *entries = NULL;
+	int status = 0;
+
+	if (fread(buffer, 4, 1, game) != 1) {
+		goto error;
+	}
+
+	count = U32LE_FROM_BUF(buffer);
+	entries = calloc(count, sizeof(struct gm_entry));
+	if (!entries) {
+		goto error;
+	}
+
+	offsets = calloc(count, sizeof(off_t));
+	if (!offsets) {
+		goto error;
+	}
+
+	for (size_t index = 0; index < count; ++ index) {
+		if (fread(buffer, 4, 1, game) != 1) {
+			goto error;
+		}
+
+		uint32_t offset = U32LE_FROM_BUF(buffer);
+		if (offset > INT32_MAX) {
+			LOG_ERR("offset too big: offset = %" PRIu32 ", max. allowed = %" PRIu32, offset, INT32_MAX);
+
+			errno = ERANGE;
+			goto error;
+		}
+		offsets[index] = (off_t)offset;
+	}
+
+	for (size_t index = 0; index < count; ++ index) {
+		struct gm_entry *entry = &entries[index];
+		if (fseeko(game, offsets[index], SEEK_SET) != 0) {
+			goto error;
+		}
+
+		if (fread(buffer, 4, 1, game) != 1) {
+			goto error;
+		}
+
+		uint32_t size = U32LE_FROM_BUF(buffer);
+		if (size == UINT32_MAX) {
+			LOG_ERR("size too big: size = %" PRIu32 ", max. allowed = %" PRIu32, size, UINT32_MAX - 1);
+
+			errno = ERANGE;
+			goto error;
+		}
+		// null byte is not included in size
+		++ size;
+
+		char *strg = malloc(size);
+		if (!strg) {
+			goto error;
+		}
+
+		if (fread(strg, size, 1, game) != 1) {
+			free(strg);
+			goto error;
+		}
+
+		if (strg[size - 1] != '\0') {
+			LOG_ERR("string at offset %" PRIi64 " (index %" PRIuPTR ") is not null terminated",
+			        (int64_t) offsets[index], index);
+
+			free(strg);
+			errno = EINVAL;
+			goto error;
+		}
+
+		entry->offset    = offsets[index];
+		entry->size      = size;
+		entry->meta.strg = strg;
+	}
+
+	section->entry_count = count;
+	section->entries     = entries;
+
+	goto end;
+
+error:
+	status = -1;
+
+	if (entries) {
+		for (size_t index = 0; index < count; ++ index) {
+			struct gm_entry *entry = &entries[index];
+			free(entry->meta.strg);
+			entry->meta.strg = NULL;
+		}
+		free(entries);
+		entries = NULL;
+	}
+
+end:
+
+	if (offsets) {
+		free(offsets);
+		offsets = NULL;
+	}
+
+	return status;
 }
 
 int gm_read_index_sprt(FILE *game, struct gm_index *section) {
@@ -992,6 +1159,12 @@ struct gm_index *gm_read_index(FILE *game) {
 		section->size    = section_size;
 
 		switch (section_type) {
+		case GM_STRG:
+			if (gm_read_index_strg(game, section) != 0) {
+				goto error;
+			}
+			break;
+
 		case GM_SPRT:
 			if (gm_read_index_sprt(game, section) != 0) {
 				goto error;
@@ -1173,6 +1346,62 @@ int gm_patch_archive(const char *filename, const struct gm_patch *patches) {
 		}
 
 		switch (ptr->section) {
+		case GM_STRG:
+		{
+			WRITE_U32LE(buffer, ptr->entry_count);
+			if (fwrite(buffer, 4, 1, tmp) != 1) {
+				goto error;
+			}
+			for (size_t i = 0; i < ptr->entry_count; ++ i) {
+				const uint32_t offset = ptr->entries[i].offset;
+				WRITE_U32LE(buffer, offset);
+				if (fwrite(buffer, 4, 1, tmp) != 1) {
+					goto error;
+				}
+			}
+			for (size_t i = 0; i < ptr->entry_count; ++ i) {
+				struct gm_patched_entry *entry = &ptr->entries[i];
+				if (entry->patch) {
+					if (fseeko(tmp, entry->offset, SEEK_SET) != 0) {
+						goto error;
+					}
+					// null byte not included in size
+					size_t new_len = strlen(entry->patch->meta.strg.new);
+					WRITE_U32LE(buffer, new_len);
+					if (fwrite(buffer, 4, 1, tmp) != 1) {
+						goto error;
+					}
+					++ new_len;
+					if (fwrite(entry->patch->meta.strg.new, new_len, 1, tmp) != 1) {
+						goto error;
+					}
+					const size_t old_len = entry->size;
+					while (new_len < old_len) {
+						if (fwrite("", 1, 1, tmp) != 1) {
+							goto error;
+						}
+						++ new_len;
+					}
+				}
+				else if (gm_copydata(game, entry->entry->offset, tmp, entry->offset, entry->size + 4) != 0) {
+					goto error;
+				}
+			}
+			const off_t offset = ftello(tmp);
+			if (offset < 0) {
+				goto error;
+			}
+			const off_t relative_offset = offset - ptr->offset;
+			const size_t full_size = ptr->size + 8;
+			if ((size_t) relative_offset < full_size) {
+				// This seems just to be some zero padding, maybe for alignment, but let's copy it anyway.
+				if (gm_copydata(game, ptr->index->offset + relative_offset, tmp, offset, full_size - relative_offset) != 0) {
+					goto error;
+				}
+			}
+			break;
+		}
+
 		case GM_TXTR:
 		{
 			WRITE_U32LE(buffer, ptr->entry_count);
@@ -1533,6 +1762,7 @@ const char *gm_extension(enum gm_filetype type) {
 		case GM_PNG:  return ".png";
 		case GM_WAVE: return ".wav";
 		case GM_OGG:  return ".ogg";
+		case GM_TXT:  return ".txt";
 		default:      return ".bin";
 	}
 }
@@ -1542,6 +1772,7 @@ const char *gm_typename(enum gm_filetype type) {
 		case GM_PNG:  return "PNG";
 		case GM_WAVE: return "WAVE";
 		case GM_OGG:  return "Ogg";
+		case GM_TXT:  return "Text";
 		default:      return "(Unknown)";
 	}
 }

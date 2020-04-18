@@ -44,6 +44,8 @@ def parse_row(line):
 
 def read(stream):
 	for line in stream:
+		if line[-1] == '\n':
+			line = line[:-1]
 		yield parse_row(line)
 
 def parse(string):

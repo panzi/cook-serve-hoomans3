@@ -3,7 +3,8 @@
 import os
 import re
 import sys
-import escsv
+import struct
+from escsv import read as escsv_read
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from io import BytesIO
 from os.path import splitext, isdir, join as pjoin, abspath, dirname
@@ -14,6 +15,7 @@ from game_maker import *
 MAX_FILLER_COUNT = 4
 HOOMAN_SPRITES = {'CUST_SPR_AllNewFTC_A', 'CUST_SPR_AllNewFTC_B'}
 HOOMAN_NAMES = {}
+STRINGS = {}
 
 @contextmanager
 def timing(name, inline=True):
@@ -33,7 +35,7 @@ def timing(name, inline=True):
 
 def load_names():
 	with open(pjoin(dirname(abspath(__file__)), '..', 'hoomans.csv'), 'r') as fp:
-		for row in escsv.read(fp):
+		for row in escsv_read(fp):
 			hname = row[0].strip()
 			hpath = row[1].strip()
 			y = None
@@ -44,6 +46,13 @@ def load_names():
 			HOOMAN_NAMES[hpath] = (hname, y)
 
 load_names()
+
+def load_strings():
+	with open(pjoin(dirname(abspath(__file__)), '..', 'strings.csv'), 'r') as fp:
+		for row in escsv_read(fp):
+			STRINGS[row[0]] = row[1]
+
+load_strings()
 
 def find_font(*fontfiles):
 	fontdirs = [
@@ -486,6 +495,10 @@ static struct gm_patch_sprt_entry csh3_sprt_%s[] = {
 			patch_def.append('GM_PATCH_SPRT("%s", csh3_sprt_%s, %d)' % (
 				escape_c_string(sprite_name), ident, len(tpag_defs)))
 
+		for old_str, new_str in STRINGS.items():
+			patch_def.append('GM_PATCH_STRG("%s", "%s")' % (
+				escape_c_string(old_str), escape_c_string(new_str)))
+
 	with timing("generate patch data", inline=False):
 		for txtr_index in sorted(replacement_txtrs):
 			((width, height), data) = replacement_txtrs[txtr_index]
@@ -565,6 +578,7 @@ const struct gm_patch csh3_patches[] = {
 
 if __name__ == '__main__':
 	import argparse
+	import platform
 
 	parser = argparse.ArgumentParser()
 
