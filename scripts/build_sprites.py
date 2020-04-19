@@ -15,7 +15,7 @@ from game_maker import *
 MAX_FILLER_COUNT = 4
 HOOMAN_SPRITES = {'CUST_SPR_AllNewFTC_A', 'CUST_SPR_AllNewFTC_B'}
 HOOMAN_NAMES = {}
-STRINGS = {}
+STRINGS = []
 
 @contextmanager
 def timing(name, inline=True):
@@ -50,7 +50,8 @@ load_names()
 def load_strings():
 	with open(pjoin(dirname(abspath(__file__)), '..', 'strings.csv'), 'r') as fp:
 		for row in escsv_read(fp):
-			STRINGS[row[0]] = row[1]
+			row[0] = int(row[0])
+			STRINGS.append(row)
 
 load_strings()
 
@@ -495,9 +496,9 @@ static struct gm_patch_sprt_entry csh3_sprt_%s[] = {
 			patch_def.append('GM_PATCH_SPRT("%s", csh3_sprt_%s, %d)' % (
 				escape_c_string(sprite_name), ident, len(tpag_defs)))
 
-		for old_str, new_str in STRINGS.items():
-			patch_def.append('GM_PATCH_STRG("%s", "%s")' % (
-				escape_c_string(old_str), escape_c_string(new_str)))
+		for index, old_str, new_str in STRINGS:
+			patch_def.append('GM_PATCH_STRG(%d, "%s", "%s")' % (
+				index, escape_c_string(old_str), escape_c_string(new_str)))
 
 	with timing("generate patch data", inline=False):
 		for txtr_index in sorted(replacement_txtrs):

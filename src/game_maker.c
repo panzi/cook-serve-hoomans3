@@ -342,52 +342,44 @@ int gm_patch_entry(struct gm_patched_index *index, const struct gm_patch *patch)
 
 	case GM_STRG:
 	{
-		const size_t old_len = strlen(patch->meta.strg.old);
-		const size_t new_len = strlen(patch->meta.strg.new);
-
-		if (new_len > old_len) {
-			LOG_ERR("cannot increase string length: \"%s\" (%" PRIuPTR ") -> \"%s\" (%" PRIuPTR ")",
-			        patch->meta.strg.old, old_len, patch->meta.strg.new, new_len);
+		if (patch->index >= index->entry_count) {
+			LOG_ERR("section %s, patch index out of range: %" PRIuPTR " >= %" PRIuPTR,
+			        gm_section_name(index->section), patch->index, index->entry_count);
 
 			errno = EINVAL;
 			return -1;
 		}
 
-		bool found = false;
-		for (size_t i = 0; i < index->entry_count; ++ i) {
-			struct gm_patched_entry *entry = &index->entries[i];
+		struct gm_patched_entry *entry = &index->entries[patch->index];
+		if (entry->patch) {
+			LOG_ERR("section %s, entry %" PRIuPTR " is already patched",
+			        gm_section_name(index->section), patch->index);
 
-			if (strcmp(entry->entry->meta.strg, patch->meta.strg.old) == 0) {
-				if (entry->patch) {
-					LOG_ERR("section %s, entry %" PRIuPTR " is already patched", gm_section_name(index->section), i);
-
-					errno = EINVAL;
-					return -1;
-				}
-				entry->patch = patch;
-				found = true;
-				break;
-			}
+			errno = EINVAL;
+			return -1;
 		}
 
-		if (!found) {
-			// So double-patching works:
-			for (size_t i = 0; i < index->entry_count; ++ i) {
-				struct gm_patched_entry *entry = &index->entries[i];
+		const size_t new_len = strlen(patch->meta.strg.new);
+		if (entry->entry->size < new_len) {
+			LOG_ERR("section %s, cannot increase string length of entry %" PRIuPTR ": \"%s\" (%" PRIuPTR ") -> \"%s\" (%" PRIuPTR ")",
+			        gm_section_name(index->section), patch->index,
+			        entry->entry->meta.strg, entry->entry->size,
+			        patch->meta.strg.new, new_len);
 
-				if (strcmp(entry->entry->meta.strg, patch->meta.strg.new) == 0 && !entry->patch) {
-					found = true;
-					break;
-				}
-			}
-
-			if (!found) {
-				LOG_ERR("can't find string \"%s\" in game archive", patch->meta.strg.old);
-
-				errno = EINVAL;
-				return -1;
-			}
+			errno = EINVAL;
+			return -1;
 		}
+
+		if (strcmp(entry->entry->meta.strg, patch->meta.strg.old) != 0 &&
+		    strcmp(entry->entry->meta.strg, patch->meta.strg.new) != 0) {
+			LOG_ERR("section %s, entry %" PRIuPTR " doesn't contain the expected string \"%s\" (or \"%s\" if already patched)",
+			        gm_section_name(index->section), patch->index, patch->meta.strg.old, patch->meta.strg.new);
+
+			errno = EINVAL;
+			return -1;
+		}
+
+		entry->patch = patch;
 		return 0;
 	}
 

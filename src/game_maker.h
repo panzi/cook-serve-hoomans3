@@ -100,8 +100,8 @@ struct gm_patch {
 	} meta;
 };
 
-#define GM_PATCH_STRG(OLD, NEW) \
-	{ GM_STRG, 0, GM_TXT, GM_SRC_MEM, 0, { .data = NULL }, { .strg = { (OLD), (NEW) } } }
+#define GM_PATCH_STRG(INDEX, OLD, NEW) \
+	{ GM_STRG, (INDEX), GM_TXT, GM_SRC_MEM, 0, { .data = NULL }, { .strg = { (OLD), (NEW) } } }
 
 #define GM_PATCH_SPRT(NAME, ENTRIES, ENTRY_COUNT) \
 	{ GM_SPRT, 0, GM_PNG, GM_SRC_MEM, 0, { .data = NULL }, { .sprt = { (NAME), (ENTRY_COUNT), (ENTRIES) } } }
