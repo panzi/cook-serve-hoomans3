@@ -188,6 +188,7 @@ const char              *gm_extension(enum gm_filetype type);
 const char              *gm_typename(enum gm_filetype type);
 enum gm_section          gm_parse_section(const uint8_t *magic);
 int                      gm_read_index_sprt(FILE *game, struct gm_index *section);
+int                      gm_read_index_strg(FILE *game, struct gm_index *section);
 int                      gm_read_index_txtr(FILE *game, struct gm_index *section);
 int                      gm_read_index_audo(FILE *game, struct gm_index *section);
 struct gm_index         *gm_read_index(FILE *game);
