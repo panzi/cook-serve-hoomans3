@@ -222,7 +222,8 @@ $(BUILDDIR_SRC)/icon.ico: $(ICONS)
 	$(CONVERT) $(ICONS) -background transparent $@
 
 $(ICONS): icon/raccoon.svg
-	$(INKSCAPE) $< --export-width=$(patsubst $(BUILDDIR_SRC)/icon_%.png,%,$@) --export-area-page --export-file=$@
+	$(INKSCAPE) $< --export-width=$(patsubst $(BUILDDIR_SRC)/icon_%.png,%,$@) \
+		--export-area-page --export-overwrite --export-type=png --export-filename=$@
 
 clean: VERSION=$(shell git describe --tags)
 clean:
