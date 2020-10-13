@@ -372,8 +372,8 @@ int gm_patch_entry(struct gm_patched_index *index, const struct gm_patch *patch)
 
 		if (strcmp(entry->entry->meta.strg, patch->meta.strg.old) != 0 &&
 		    strcmp(entry->entry->meta.strg, patch->meta.strg.new) != 0) {
-			LOG_ERR("section %s, entry %" PRIuPTR " doesn't contain the expected string \"%s\" (or \"%s\" if already patched)",
-			        gm_section_name(index->section), patch->index, patch->meta.strg.old, patch->meta.strg.new);
+			LOG_ERR("section %s, entry %" PRIuPTR " doesn't contain the expected string \"%s\" (or \"%s\" if already patched), but instead contains \"%s\"",
+			        gm_section_name(index->section), patch->index, patch->meta.strg.old, patch->meta.strg.new, entry->entry->meta.strg);
 
 			errno = EINVAL;
 			return -1;
