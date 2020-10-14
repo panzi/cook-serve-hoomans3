@@ -100,7 +100,7 @@ Build From Source
 In case you want to build this patching tool yourself download the source and
 simply run these commands in the source folder:
 
-```
+```bash
 make setup
 make -j`nproc`
 ```
@@ -108,7 +108,7 @@ make -j`nproc`
 If you want to cross-compile for another platform you can run one of these
 commands:
 
-```
+```bash
 make TARGET=linux32
 make TARGET=linux64
 make TARGET=win32
@@ -120,7 +120,7 @@ You can do this simply by running `make TARGET=$TARGET setup`.
 
 Finally you can run the patch by typing:
 
-```
+```bash
 make patch
 ```
 
@@ -128,18 +128,25 @@ How It Works
 ------------
 
 Cook, Serve, Delicious! 3?! uses [Game Maker](http://www.yoyogames.com/studio)
-from YoYo Games. At first I didn't bother reverse engineering the archive file
-format of this game engine, but because the file size of the replacement sprite
-got bigger than the file size of the original I had to reverse engineer at least
-a bit so I could rewrite the archive properly (instead of just overwriting the
-proportion of the archive containing the sprite).
+from YoYo Games. For Cook, Serve, Delicious! 1 I at first didn't bother reverse
+engineering the archive file format, but instead just found the offset of the
+sprite image and re-wrote that in place. But because the file size of the
+replacement sprite got bigger than the file size of the original I had to
+reverse engineer at least a bit so I could rewrite the archive properly.
 
 This program understands the overall structure of Game Maker archives, the
-detailed structure of the TXTR and AUDO sections, and some parts of the SPRT and
-TPAG sections. TXTR and AUDO are the last two sections in the archive, so when
-the TXTR section needs resizing absolute offsets in this section and the
+detailed structure of the STRG, TXTR and AUDO sections, and some parts of the
+SPRT and TPAG sections. TXTR and AUDO are the last two sections in the archive,
+so when the TXTR section needs resizing absolute offsets in this section and the
 following section (AUDO) need to be adjusted. There don't seem to be any offsets
 to parts of those sections in other places.
+
+The STRG section just contains a string table. Any strings used in the game
+are stored there and referenced by absolute offset in the file. However, some
+strings seem to be referenced differently (they are definitely used, but I
+can't find their offsets in the game archive). Therefore I don't really re-write
+the STRG section when patching strings, but only replace strings in it with
+other strings of the same or shorter length (zero padded if shorter).
 
 The SPRT and TPAG sections contain the coordinates of the sprites inside of the
 textures. During compilation this information is used to generate the new
@@ -164,6 +171,4 @@ for Windows under Linux is easy.
 
 However, it is very very cumbersome to cross compile stuff for Mac under Linux
 (the setup still requires access to a Mac and an Apple developer account), so I
-can't provide a Mac binary. I could rewrite everything in Python (Mac, just like
-most Linux distributions, actually comes with Python pre-installed), but I only
-do this if there is any demand for it.
+can't provide a Mac binary.
