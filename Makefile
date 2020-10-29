@@ -108,7 +108,7 @@ endif
 endif
 
 .PHONY: all clean cook_serve_hoomans3 gmdump gmupdate patch setup pkg \
-        build_sprites internal_make_binary icon unpatch
+        build_sprites internal_make_binary icon unpatch cleanall
 
 # keep intermediary files (e.g. csh3_patch_def.c) to
 # do less redundant work (when cross compiling):
@@ -250,3 +250,9 @@ clean:
 		$(BUILDDIR_BIN)/open_with_cook_serve_hoomans3.command \
 		$(BUILDDIR_BIN)/cook_serve_hoomans3_$(VERSION)_mac.zip \
 		$(BUILDDIR_BIN)/utils-for-advanced-users-$(VERSION)-$(TARGET).zip
+
+cleanall:
+	$(MAKE) clean TARGET=win32
+	$(MAKE) clean TARGET=win64
+	$(MAKE) clean TARGET=linux32
+	$(MAKE) clean TARGET=linux64
